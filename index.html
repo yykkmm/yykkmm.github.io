@@ -247,6 +247,152 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/09/include-stopped-package/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kevin Ye">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kevin Ye's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2017/03/09/include-stopped-package/" itemprop="url">
+                  include_stopped_package
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-09T15:31:35+08:00">
+                2017-03-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="FLAG-INCLUDE-STOPPED-PACKAGES-问题"><a href="#FLAG-INCLUDE-STOPPED-PACKAGES-问题" class="headerlink" title="FLAG_INCLUDE_STOPPED_PACKAGES 问题"></a>FLAG_INCLUDE_STOPPED_PACKAGES 问题</h2><p>发送重要intent时，为了确保能收到这个intent，需添加flag： FLAG_INCLUDE_STOPPED_PACKAGES。</p>
+<p>这个flag 的注释很容易误导人，注释说，设置了这个flag后，intent可以找到当前被stopped的应用。 当没有设置FLAG_EXCLUDE_STOPPED_PACKAGES 这个flag时，默认按照 设置了FLAG_INCLUDE_STOPPED_PACKAGES 的行为进行。 如果同时设置了FLAG_EXCLUDE_STOPPED_PACKAGES 和 FLAG_INCLUDE_STOPPED_PACKAGES 时，也按照设置了FLAG_INCLUDE_STOPPED_PACKAGES 的行为进行。</p>
+<blockquote>
+<p>If set, this intent will always match any components in packages that are currently stopped. This is the default behavior when FLAG_EXCLUDE_STOPPED_PACKAGES is not set. If both of these flags are set, this one wins (it allows overriding of exclude for places where the framework may automatically set the exclude flag).</p>
+</blockquote>
+<p>看到注释后理所当然的认为只要不人为去添加一个FLAG_EXCLUDE_STOPPED_PACKAGES，就应该是按照设置了FLAG_INCLUDE_STOPPED_PACKAGES 的行为进行。 但是跟踪源码发现系统居然默认加了个exclude的flag，从ActivityManagerService中broadcastIntentLocked的源码看实际是添加了FLAG_EXCLUDE_STOPPED_PACKAGES：</p>
+<p> `<br>private final int broadcastIntentLocked(ProcessRecord callerApp,<br>            String callerPackage, Intent intent, String resolvedType,<br>            IIntentReceiver resultTo, int resultCode, String resultData,<br>            Bundle map, String requiredPermission, int appOp,<br>            boolean ordered, boolean sticky, int callingPid, int callingUid,<br>            int userId) {</p>
+<pre><code>intent = new Intent(intent);
+
+// By default broadcasts do not go to stopped apps.
+intent.addFlags(Intent.FLAG_EXCLUDE_STOPPED_PACKAGES);
+
+if (DEBUG_BROADCAST_LIGHT) Slog.v(
+    TAG, (sticky ? &quot;Broadcast sticky: &quot;: &quot;Broadcast: &quot;) + intent
+    + &quot; ordered=&quot; + ordered + &quot; userid=&quot; + userId);
+if ((resultTo != null) &amp;&amp; !ordered) {
+    Slog.w(TAG, &quot;Broadcast &quot; + intent + &quot; not ordered but result callback requested!&quot;);
+}
+
+...
+
+}
+</code></pre><p>`</p>
+<p>且android3.1的update说明中也说明系统默认为所有intent加了exclude flag。 <a href="https://developer.android.com/about/versions/android-3.1.html" target="_blank" rel="external">android 3.1 release note </a></p>
+<blockquote>
+<p>Note that the system adds FLAG_EXCLUDE_STOPPED_PACKAGES to all broadcast intents. It does this to prevent broadcasts from background services from inadvertently or unnecessarily launching components of stoppped applications. A background service or application can override this behavior by adding the FLAG_INCLUDE_STOPPED_PACKAGES flag to broadcast intents that should be allowed to activate stopped applications.</p>
+<p>Applications are in a stopped state when they are first installed but are not yet launched and when they are manually stopped by the user (in Manage Applications).</p>
+</blockquote>
+<p>这样的话如果开发者没有手动为intent加上FLAG_INCLUDE_STOPPED_PACKAGES的话，都会受到影响</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/07/test-title/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -546,7 +692,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
