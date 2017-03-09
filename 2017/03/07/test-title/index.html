@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="android," />
 
 
 
@@ -87,13 +87,16 @@
 
 
 
+<meta name="description" content="Start activity from a SingleInstance activity问题：项目上遇到个问题，有个 SingleInstance 的 activity Activity-A， 可以看成一个dialog样式的list，点击其中的每个item可以打开对应的详情界面，即跳转到 Activity-B，跳转到 Activity-B 后仍会控制让 Activity-A 再次弹出覆盖在 Ac">
 <meta property="og:type" content="article">
-<meta property="og:title" content="test title">
+<meta property="og:title" content="Start activity from a SingleInstance activity">
 <meta property="og:url" content="http://yoursite.com/2017/03/07/test-title/index.html">
 <meta property="og:site_name" content="Kevin Ye's Blog">
-<meta property="og:updated_time" content="2017-03-07T06:33:56.737Z">
+<meta property="og:description" content="Start activity from a SingleInstance activity问题：项目上遇到个问题，有个 SingleInstance 的 activity Activity-A， 可以看成一个dialog样式的list，点击其中的每个item可以打开对应的详情界面，即跳转到 Activity-B，跳转到 Activity-B 后仍会控制让 Activity-A 再次弹出覆盖在 Ac">
+<meta property="og:updated_time" content="2017-03-09T07:15:11.098Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="test title">
+<meta name="twitter:title" content="Start activity from a SingleInstance activity">
+<meta name="twitter:description" content="Start activity from a SingleInstance activity问题：项目上遇到个问题，有个 SingleInstance 的 activity Activity-A， 可以看成一个dialog样式的list，点击其中的每个item可以打开对应的详情界面，即跳转到 Activity-B，跳转到 Activity-B 后仍会控制让 Activity-A 再次弹出覆盖在 Ac">
 
 
 
@@ -127,7 +130,7 @@
 
 
 
-  <title> test title | Kevin Ye's Blog </title>
+  <title> Start activity from a SingleInstance activity | Kevin Ye's Blog </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -267,7 +270,7 @@
             
             
               
-                test title
+                Start activity from a SingleInstance activity
               
             
           </h1>
@@ -318,7 +321,27 @@
       
 
       
-        
+        <h2 id="Start-activity-from-a-SingleInstance-activity"><a href="#Start-activity-from-a-SingleInstance-activity" class="headerlink" title="Start activity from a SingleInstance activity"></a>Start activity from a SingleInstance activity</h2><p>问题：项目上遇到个问题，有个 SingleInstance 的 activity Activity-A， 可以看成一个dialog样式的list，点击其中的每个item可以打开对应的详情界面，即跳转到 Activity-B，跳转到 Activity-B 后仍会控制让 Activity-A 再次弹出覆盖在 Activity-B 之上，可以再次点击其中的item打开新的详情界面， Activity-B 是个普通 activity， 预期是每次点击 Activity-A 中的item 后会打开一个新的 Activity-B 来显示详情，多次点击后应该有多个 Activity-B 的实例，分别显示不同item的详情。 然而实际过程中发现 Activity-B 始终只有一个实例，始终显示的是最后一次点击的item的详情， 即便在startActivity的intent中不添加任何flag也是如此。</p>
+<p>原因: 查看官方文档后发现，从一个 SingleInstance 的 Activity 跳转到别的 Activity 时， 默认是加了 FLAG_ACTIVITY_NEW_TASK 的。</p>
+<blockquote>
+<p>A “singleInstance” activity, on the other hand, permits no other activities to be part of its task. It’s the only activity in the task. If it starts another activity, that activity is assigned to a different task — as if FLAG_ACTIVITY_NEW_TASK was in the intent.</p>
+</blockquote>
+<p>而如果添加了 FLAG_ACTIVITY_NEW_TASK ，如果目标 Activity 已经存在于一个task时，不会创建一个新的实例，而是把已有的那个task带到前台， 所以导致了以上问题的出现。</p>
+<blockquote>
+<p>“Start the activity in a new task. If a task is already running for the activity you are now starting, that task is brought to the foreground with its last state restored and the activity receives the new intent in onNewIntent().”</p>
+</blockquote>
+<p>解决办法：在 startActivity 的 intent 里同时加上 FLAG_ACTIVITY_NEW_TASK 和 FLAG_ACTIVITY_MULTIPLE_TASK （必须同时使用），官方文档对FLAG_ACTIVITY_MULTIPLE_TASK 的解释是：</p>
+<blockquote>
+<p>Used in conjunction with FLAG_ACTIVITY_NEW_TASK to disable the behavior of bringing an existing task to the foreground. When set, a new task is always started to host the Activity for the Intent, regardless of whether there is already an existing task running the same thing.</p>
+</blockquote>
+<p>参考官方文档：</p>
+<ul>
+<li><p><a href="https://developer.android.com/guide/topics/manifest/activity-element.html#lmode" target="_blank" rel="external">Activity LaunchMode</a></p>
+</li>
+<li><p><a href="https://developer.android.com/reference/android/content/Intent.html#FLAG_ACTIVITY_MULTIPLE_TASK" target="_blank" rel="external">FLAG_ACTIVITY_MULTIPLE_TASK</a></p>
+</li>
+</ul>
+
       
     </div>
 
@@ -338,6 +361,12 @@
 
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android/" rel="tag"># android</a>
+          
+        </div>
       
 
       
@@ -403,8 +432,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/uploads/avatar.jpg"
@@ -428,6 +466,15 @@
           
 
           
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
 
         </nav>
 
@@ -448,6 +495,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Start-activity-from-a-SingleInstance-activity"><span class="nav-number">1.</span> <span class="nav-text">Start activity from a SingleInstance activity</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
